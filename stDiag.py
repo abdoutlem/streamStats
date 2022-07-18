@@ -2,7 +2,7 @@ import numpy as np
 #import matplotlib.pyplot as plt
 import pandas as pd
 import time
-import plotly_express as px
+#import plotly_express as px
 import streamlit as st
 
 #file2 = 'C:/Users/arhmaritlemcani/Downloads/sensors_messages_2022-07-17 (2).csv'
