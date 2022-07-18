@@ -2,7 +2,7 @@ import numpy as np
 #import matplotlib.pyplot as plt
 import pandas as pd
 import time
-import plotly.express as px
+import plotly_express as px
 import streamlit as st
 
 #file2 = 'C:/Users/arhmaritlemcani/Downloads/sensors_messages_2022-07-17 (2).csv'
@@ -120,6 +120,7 @@ st.markdown('---')
 nbreCaptArraches = dfDiag_selection.groupby(['Type de message']).describe().iloc[3]['Code']
 
 st.title("Nombre de capteurs arrachés")
+st.text("(Quand un capteur est décollé ou subit une secousse celui-ci envoi un message d'arrachement)")
 #st.dataframe(nbreCaptArraches)
 st.text(nbreCaptArraches)
 

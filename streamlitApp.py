@@ -4,7 +4,7 @@ import numpy as np
 #import seaborn as sns
 import pandas as pd
 import time
-import plotly.express as px
+import plotly_express as px
 import streamlit as st
 
 st.set_page_config(page_title="Dashboard", layout="wide")
