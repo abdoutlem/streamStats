@@ -1,0 +1,2 @@
+plotly==5.9.0
+plotly-express==0.4.1
