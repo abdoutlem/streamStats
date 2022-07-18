@@ -42,8 +42,8 @@ def format(excelFile):
 
 @st.cache
 def get_data_from_csv():
-    #file = 'C:/Users/arhmaritlemcani/Downloads/sensors_messages_2022-07-17 (1).csv'
-    file  = 'inputFiles/sensors_messages_2022-07-17 (1).csv'
+    file = 'C:/Users/arhmaritlemcani/Downloads/sensors_messages_2022-07-18.csv'
+    #file  = 'inputFiles/sensors_messages_2022-07-17 (1).csv'
     df = pd.read_csv(file,delimiter=';',encoding='ISO-8859-1',dtype=str).sort_values(['Code','Heure de message'])
 
     return df
@@ -386,19 +386,69 @@ d1 = d1.groupby(['etg']).sum()
 d1['nbrePostesEtg'] = tableUtilisations_selection.groupby(['etg']).first()['nbrePostesEtg'].astype(int)
 
 
-TxOccupParHeure = (
-    np.around(d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'],2)
+
+try:
+    TxOccupParHeureEtg3 = (
+        np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['3']]
+    )
+except:
+    TxOccupParHeureEtg3 = [0]
+
+try:
+    TxOccupParHeureEtg4 = (
+        np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['4']]
+    )
+except:
+    TxOccupParHeureEtg4 = [0]
+
+try:
+    TxOccupParHeureEtg5 = (
+    np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['5']]
+    )
+except:
+    TxOccupParHeureEtg5 = [0]
+
+
+
+fig_TxOccupParHeureEtg3 = px.bar(
+    TxOccupParHeureEtg3,text_auto=True,
+    title="<b>Taux d'occupation par heure du 04/07/2022 au 08/07/2022</b>",
+    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg3),
+    template="plotly_white",labels={
+                     "value": "Taux d'occupation en %",
+                     "index": "Tranches horaires",
+                     "etg": "Etage"
+                 }
+
 )
 
-fig_TxOccupParHeure = px.bar(
-    TxOccupParHeure,
-    title="<b>Taux d'occupation par heure</b>",
-    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeure),
-    template="plotly_white",
+fig_TxOccupParHeureEtg4 = px.bar(
+    TxOccupParHeureEtg4,text_auto=True,
+    title="<b>Taux d'occupation par heure du 04/07/2022 au 08/07/2022</b>",
+    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg4),
+    template="plotly_white",labels={
+                     "value": "Taux d'occupation en %",
+                     "index": "Tranches horaires",
+                     "etg": "Etage"
+                 }
+
+)
+fig_TxOccupParHeureEtg5 = px.bar(
+    TxOccupParHeureEtg5,text_auto=True,
+    title="<b>Taux d'occupation par heure du 04/07/2022 au 08/07/2022</b>",
+    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg5),
+    template="plotly_white",labels={
+                     "value": "Taux d'occupation en %",
+                     "index": "Tranches horaires",
+                     "etg": "Etage"
+                 }
 
 )
 
-st.plotly_chart(fig_TxOccupParHeure)
+
+st.plotly_chart(fig_TxOccupParHeureEtg3)
+st.plotly_chart(fig_TxOccupParHeureEtg4)
+st.plotly_chart(fig_TxOccupParHeureEtg5)
 
 
 st.markdown('---')
@@ -420,7 +470,7 @@ st.plotly_chart(fig_dureeMoyUtilPostes)
 st.markdown('---')
 #Plus longues durées d'occupations
 postesLesPlusLgtpmsUtil = (
-    tableUtilisations_selection.groupby(['SigfoxID']).last()['OccupationTotale'].nlargest(3).to_frame()
+    tableUtilisations_selection.groupby(['SigfoxID']).last()['OccupationTotale'].nlargest(10).to_frame()
 )
 
 
