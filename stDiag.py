@@ -112,30 +112,59 @@ dfDiag_selection = dfDiag.query(
 # Diagnostic part
 st.markdown('---')
 st.title(":dart: Diagnostic")
-st.dataframe(dfDiag_selection)
+#st.dataframe(dfDiag_selection)
 
 
 st.markdown('---')
 #Nombre de Capteurs arrachés
-nbreCaptArraches = dfDiag_selection.groupby(['Type de message']).describe().iloc[3]['Code']
+nbreCaptArraches = dfDiag_selection.groupby(['Type de message']).describe().iloc[3]['Code'][0]
+captLePlusArrache = dfDiag_selection.groupby(['Type de message']).describe().iloc[3]['Code'][2]
+nbreArrachementDuCapteur = dfDiag_selection.groupby(['Type de message']).describe().iloc[3]['Code'][3]
 
-st.title("Nombre de capteurs arrachés")
-st.text("(Quand un capteur est décollé ou subit une secousse celui-ci envoi un message d'arrachement)")
-#st.dataframe(nbreCaptArraches)
+st.title("Messages d'arrachement : ")
+st.text("(Quand un capteur est décollé ou subit une secousse celui-ci envoi un message d'arrachement")
+
+st.text("Le nombre de messages d'arrachement : ")
 st.text(nbreCaptArraches)
 
+st.text('Le capteur le plus arrcahé est  : ')
+st.text(captLePlusArrache)
+st.text("Nombre d'arrachement du capteur :")
+st.text(nbreArrachementDuCapteur)
+
+
+
 #Taux de couverture
+
 
 #Nombre de paquets perdus par tranche horaire
 
 #Pourcentage de paquets perdus par tranche horaire
 
 #Les 3 capteurs avec le plus de perte de paquets
-captAcLePlusDePertes = dfDiag_selection.groupby(['Code'])['Recupere'].sum().to_frame().nlargest(2,['Recupere'])
+st.markdown('---')
+st.title("Capteurs avec le plus de perte de paquets")
 
-st.title("Capteurs avec le plus de perte")
+
+
+try:
+    nbrePaquetsPerdusTotal = dfDiag_selection.groupby(['Recupere']).describe()['Code']['count'][1]
+    captAcLePlusDePertes = dfDiag_selection.groupby(['Recupere']).describe()['Code']['top'][1]
+    nbrePaquetsPerdusCapteur = dfDiag_selection.groupby(['Recupere']).describe()['Code']['freq'][1]
+except:
+    nbrePaquetsPerdusTotal = 0
+    captAcLePlusDePertes = 0
+    nbrePaquetsPerdusCapteur = 0
+
+
 #st.dataframe(captAcLePlusDePertes)
+st.text("Nombre de paquets perdus :")
+st.text(nbrePaquetsPerdusTotal)
+
+st.text("Capteur avec le plus de perte :")
 st.text(captAcLePlusDePertes)
+st.text("Nombre de paquets perdus :")
+st.text(nbrePaquetsPerdusCapteur)
 
 
 
