@@ -5,8 +5,8 @@ import time
 #import plotly_express as px
 import streamlit as st
 
-file2 = 'C:/Users/arhmaritlemcani/Downloads/sensors_messages_2022-07-18 (7).csv'
-#file2 = 'inputFiles/sensors_messages_2022-07-17 (2).csv'
+#file2 = 'C:/Users/arhmaritlemcani/Downloads/sensors_messages_2022-07-18 (7).csv'
+file2 = 'inputFiles/sensors_messages_2022-07-18 (7).csv'
 dfDiag = pd.read_csv(file2,delimiter=';',encoding='ISO-8859-1',dtype=str).sort_values(['Code','Heure de message'])
 
 def recupPaquetsPerdus(df):

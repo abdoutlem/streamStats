@@ -42,7 +42,7 @@ def format(excelFile):
 
 @st.cache
 def get_data_from_csv():
-    file = 'C:/Users/arhmaritlemcani/Downloads/sensors_messages_2022-07-18.csv'
+    file = 'inputFiles/sensors_messages_2022-07-18.csv'
     #file  = 'inputFiles/sensors_messages_2022-07-17 (1).csv'
     df = pd.read_csv(file,delimiter=';',encoding='ISO-8859-1',dtype=str).sort_values(['Code','Heure de message'])
 
