@@ -10,14 +10,16 @@ import streamlit as st
 st.set_page_config(page_title="Dashboard", layout="wide")
 
 
-def formatDate(file):
-    jour = file[36:38]
-    mois = file[33:35]
-    annee = file[28:32]
-    date = jour + '/' + mois + '/' + annee
-    return date
+
+#def formatDate(file):
+#    jour = file[36:38]
+#    mois = file[33:35]
+#    annee = file[28:32]
+#    date = jour + '/' + mois + '/' + annee
+#    return date
 
 def date_to_minutes(date):
+
     horaire = date[11:]
     heure = int(horaire[:2])
     minutes = int(horaire[3:5])
@@ -42,7 +44,7 @@ def format(excelFile):
 
 @st.cache
 def get_data_from_csv():
-    file = 'inputFiles/sensors_messages_2022-07-18.csv'
+    file = 'C:/Users/arhmaritlemcani/Downloads/sensors_messages_2022-07-18.csv'
     #file  = 'inputFiles/sensors_messages_2022-07-17 (1).csv'
     df = pd.read_csv(file,delimiter=';',encoding='ISO-8859-1',dtype=str).sort_values(['Code','Heure de message'])
 
@@ -60,10 +62,13 @@ if( 'Europ' in df['Client'].iloc[0]):
 elif(df['Client'].iloc[0] == 'AXA'):
     client = 'Axa'
     sousClient = 'AxaTSN' # C'est à nous de choisir (Choix possibles: AxaTSN / AxaMAJ / )
+elif('CD92' in df['Client'].iloc[0]):
+    client = 'CD92'
 
 
 def recupPaquetsPerdus(df):
     wxData = df.to_numpy()
+    print(isinstance(wxData[18117][14],float))
     paquetsRécuperes = 0
 
     for i in range(len(wxData) - 1):
@@ -71,7 +76,7 @@ def recupPaquetsPerdus(df):
             if (wxData[i][6] != 'MCEO' and wxData[i + 1][6] == 'MCEL'):
                 wxData = np.insert(wxData, i + 1, wxData[i + 1], 0)
                 wxData[i + 1][6] = 'MCEO'  # wxData[i+1][14]
-                wxData[i + 1][8] = wxData[i + 1][15]
+                wxData[i + 1][8] = wxData[i + 1][15] if isinstance(wxData[i+1][15],str) else (wxData[i][8])  # Pour eviter de recuperer des paquets aves des manques d'informations
                 wxData[i + 1][14] = 'RECUP'
                 wxData[i + 1][15] = ''
                 paquetsRécuperes += 1
@@ -79,7 +84,7 @@ def recupPaquetsPerdus(df):
             elif (wxData[i][6] == 'MCEO' and wxData[i + 1][6] == 'MCEO'):
                 wxData = np.insert(wxData, i + 1, wxData[i + 1], 0)
                 wxData[i + 1][6] = 'MCEL'  # wxData[i + 1][14]
-                wxData[i + 1][8] = wxData[i + 1][15]
+                wxData[i + 1][8] = wxData[i + 1][15] if isinstance(wxData[i+1][15],str) else wxData[i][8]
                 wxData[i + 1][14] = 'RECUP'
                 wxData[i + 1][15] = ''
                 paquetsRécuperes += 1
@@ -89,7 +94,6 @@ def recupPaquetsPerdus(df):
 
 
 df = recupPaquetsPerdus(df=df)
-
 
 # %% [markdown]
 # Creation de la Table utilisation
@@ -153,6 +157,12 @@ tableUtilisations['etg'] = tableUtilisations['path']
 tableUtilisations['nbrePostesEtg'] = tableUtilisations['path']
 tableUtilisations['zone'] = tableUtilisations['path'].str[22:24]
 tableUtilisations['trancheHoraire'] = tableUtilisations['dateDebut']
+# tranches horaires :
+tableUtilisations.loc[(tableUtilisations['dateDebut'] < '07:00:00'), 'trancheHoraire'] = 't-7'
+tableUtilisations.loc[(tableUtilisations['dateDebut'] >= '07:00:00') & (tableUtilisations['dateDebut'] < '12:00:00'), 'trancheHoraire'] = 't7_12'
+tableUtilisations.loc[(tableUtilisations['dateDebut'] >= '12:00:00') & (tableUtilisations['dateDebut'] < '14:00:00'), 'trancheHoraire'] = 't12_14'
+tableUtilisations.loc[(tableUtilisations['dateDebut'] >= '14:00:00') & (tableUtilisations['dateDebut'] < '21:00:00'), 'trancheHoraire'] = 't14_21'
+tableUtilisations.loc[(tableUtilisations['dateDebut'] >= '21:00:00'), 'trancheHoraire'] = 't21+'
 
 # %%
 if (client == 'EuropAssistance'):
@@ -166,15 +176,7 @@ if (client == 'EuropAssistance'):
     tableUtilisations.loc[(tableUtilisations['nbrePostesEtg'].str.contains('F03')), 'nbrePostesEtg'] = '521'
     tableUtilisations.loc[(tableUtilisations['nbrePostesEtg'].str.contains('F04')), 'nbrePostesEtg'] = '344'
     tableUtilisations.loc[(tableUtilisations['nbrePostesEtg'].str.contains('F05')), 'nbrePostesEtg'] = '159'
-    # tranches horaires :
-    tableUtilisations.loc[(tableUtilisations['dateDebut'] < '07:00:00'), 'trancheHoraire'] = 't-7'
-    tableUtilisations.loc[(tableUtilisations['dateDebut'] >= '07:00:00') & (
-                tableUtilisations['dateDebut'] < '12:00:00'), 'trancheHoraire'] = 't7_12'
-    tableUtilisations.loc[(tableUtilisations['dateDebut'] >= '12:00:00') & (
-                tableUtilisations['dateDebut'] < '14:00:00'), 'trancheHoraire'] = 't12_14'
-    tableUtilisations.loc[(tableUtilisations['dateDebut'] >= '14:00:00') & (
-                tableUtilisations['dateDebut'] < '21:00:00'), 'trancheHoraire'] = 't14_21'
-    tableUtilisations.loc[(tableUtilisations['dateDebut'] >= '21:00:00'), 'trancheHoraire'] = 't21+'
+
 
 elif (client == 'Axa'):
     if (sousClient == 'AxaTSN'):
@@ -218,6 +220,34 @@ elif (client == 'Axa'):
     # sensorType:
     tableUtilisations.loc[(tableUtilisations['sensorType'].str.contains('DESK')), 'sensorType'] = 'DESK'
     tableUtilisations.loc[(tableUtilisations['sensorType'].str.contains('CEILING')), 'sensorType'] = 'CEILING'
+elif(client == 'CD92'):
+    # Batiments :
+    tableUtilisations.loc[(tableUtilisations['bat'].str.contains('UAR')), 'bat'] = 'UArena'
+    # Etages :
+    tableUtilisations.loc[(tableUtilisations['etg'].str.contains('SS')), 'etg'] = '-1'
+    tableUtilisations.loc[(tableUtilisations['etg'].str.contains('E00')), 'etg'] = '0'
+    tableUtilisations.loc[(tableUtilisations['etg'].str.contains('E01')), 'etg'] = '1'
+    tableUtilisations.loc[(tableUtilisations['etg'].str.contains('E02')), 'etg'] = '2'
+    tableUtilisations.loc[(tableUtilisations['etg'].str.contains('E03')), 'etg'] = '3'
+    tableUtilisations.loc[(tableUtilisations['etg'].str.contains('E04')), 'etg'] = '4'
+    tableUtilisations.loc[(tableUtilisations['etg'].str.contains('E05')), 'etg'] = '5'
+    tableUtilisations.loc[(tableUtilisations['etg'].str.contains('E06')), 'etg'] = '6'
+    tableUtilisations.loc[(tableUtilisations['etg'].str.contains('E07')), 'etg'] = '7'
+    tableUtilisations.loc[(tableUtilisations['etg'].str.contains('E08')), 'etg'] = '8'
+    tableUtilisations.loc[(tableUtilisations['etg'].str.contains('E09')), 'etg'] = '9'
+    # nbreDeCapteursParEtage
+    tableUtilisations.loc[(tableUtilisations['nbrePostesEtg'].str.contains('SS')), 'nbrePostesEtg'] = '3'
+    tableUtilisations.loc[(tableUtilisations['nbrePostesEtg'].str.contains('E00')), 'nbrePostesEtg'] = '3'
+    tableUtilisations.loc[(tableUtilisations['nbrePostesEtg'].str.contains('E01')), 'nbrePostesEtg'] = '1'
+    tableUtilisations.loc[(tableUtilisations['nbrePostesEtg'].str.contains('E02')), 'nbrePostesEtg'] = '12'
+    tableUtilisations.loc[(tableUtilisations['nbrePostesEtg'].str.contains('E03')), 'nbrePostesEtg'] = '15'
+    tableUtilisations.loc[(tableUtilisations['nbrePostesEtg'].str.contains('E04')), 'nbrePostesEtg'] = '12'
+    tableUtilisations.loc[(tableUtilisations['nbrePostesEtg'].str.contains('E05')), 'nbrePostesEtg'] = '15'
+    tableUtilisations.loc[(tableUtilisations['nbrePostesEtg'].str.contains('E06')), 'nbrePostesEtg'] = '15'
+    tableUtilisations.loc[(tableUtilisations['nbrePostesEtg'].str.contains('E07')), 'nbrePostesEtg'] = '9'
+    tableUtilisations.loc[(tableUtilisations['nbrePostesEtg'].str.contains('E08')), 'nbrePostesEtg'] = '19'
+    tableUtilisations.loc[(tableUtilisations['nbrePostesEtg'].str.contains('E09')), 'nbrePostesEtg'] = '1'
+
 
 tableUtilisations.reset_index(drop='True', inplace=True)
 
@@ -309,14 +339,21 @@ trancheHoraire = st.sidebar.multiselect("Tranche Horaire :",
     default =  tableUtilisations['trancheHoraire'].unique()
 )
 
-zone = st.sidebar.multiselect("Zone :",
-    options =  tableUtilisations['zone'].unique(),
-    default =  tableUtilisations['zone'].unique()
-)
+if(client != 'CD92'):
+    zone = st.sidebar.multiselect("Zone :",
+        options =  tableUtilisations['zone'].unique(),
+        default =  tableUtilisations['zone'].unique()
+    )
 
-tableUtilisations_selection = tableUtilisations.query(
-    "bat == @Batiment & etg == @Etage & sensorType == @sensorType & date == @Date & trancheHoraire == @trancheHoraire & zone == @zone"
-)
+    tableUtilisations_selection = tableUtilisations.query(
+            "bat == @Batiment & etg == @Etage & sensorType == @sensorType & date == @Date & trancheHoraire == @trancheHoraire & zone == @zone"
+        )
+
+
+if(client=='CD92'):
+    tableUtilisations_selection = tableUtilisations.query(
+        "bat == @Batiment & etg == @Etage & sensorType == @sensorType & date == @Date & trancheHoraire == @trancheHoraire"  # Car pas de zones dans CD92
+    )
 
 tableOccupations['bat'] = tableUtilisations['bat']
 tableOccupations['etg'] = tableUtilisations['etg']
@@ -368,15 +405,22 @@ nbrePostesOccupParHeure = (
     d1.groupby(['etg']).sum().reset_index().transpose()[2:]
 )
 
+if(client=='CD92'):
+    nbrePostesOccupParHeure = nbrePostesOccupParHeure.rename(columns={0:'-1',1:0,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8})
+
 fig_nbrePostesOccupParHeure = px.line(
     nbrePostesOccupParHeure,
     title="<b>Nombre de postes occupés par heure</b>",
     color_discrete_sequence=["#0083B8"] * len(nbrePostesOccupParHeure),
-    template="plotly_white",
+    template="plotly_white",labels=
+    {
+        "variable":"Etage"
+    }
 
 )
 
 st.plotly_chart(fig_nbrePostesOccupParHeure)
+st.text(nbrePostesOccupParHeure)
 
 
 #Taux d'occupation par heure
@@ -407,12 +451,60 @@ try:
     )
 except:
     TxOccupParHeureEtg5 = [0]
+try:
+    TxOccupParHeureEtg5 = (
+    np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['5']]
+    )
+except:
+    TxOccupParHeureEtg5 = [0]
+try:
+    TxOccupParHeureEtg6 = (
+    np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['6']]
+    )
+except:
+    TxOccupParHeureEtg6 = [0]
+try:
+    TxOccupParHeureEtg7 = (
+    np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['7']]
+    )
+except:
+    TxOccupParHeureEtg7 = [0]
+try:
+    TxOccupParHeureEtg8 = (
+    np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['8']]
+    )
+except:
+    TxOccupParHeureEtg8 = [0]
+try:
+    TxOccupParHeureEtgSS = (
+    np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['-1']]
+    )
+except:
+    TxOccupParHeureEtgSS = [0]
+try:
+    TxOccupParHeureEtg0 = (
+    np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['0']]
+    )
+except:
+    TxOccupParHeureEtg0 = [0]
+try:
+    TxOccupParHeureEtg1 = (
+    np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['1']]
+    )
+except:
+    TxOccupParHeureEtg1 = [0]
+try:
+    TxOccupParHeureEtg2 = (
+    np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['2']]
+    )
+except:
+    TxOccupParHeureEtg2 = [0]
 
 
 
 fig_TxOccupParHeureEtg3 = px.bar(
     TxOccupParHeureEtg3,text_auto=True,
-    title="<b>Taux d'occupation par heure du 04/07/2022 au 08/07/2022</b>",
+    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>"  ,
     color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg3),
     template="plotly_white",labels={
                      "value": "Taux d'occupation en %",
@@ -424,7 +516,7 @@ fig_TxOccupParHeureEtg3 = px.bar(
 
 fig_TxOccupParHeureEtg4 = px.bar(
     TxOccupParHeureEtg4,text_auto=True,
-    title="<b>Taux d'occupation par heure du 04/07/2022 au 08/07/2022</b>",
+    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
     color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg4),
     template="plotly_white",labels={
                      "value": "Taux d'occupation en %",
@@ -435,7 +527,7 @@ fig_TxOccupParHeureEtg4 = px.bar(
 )
 fig_TxOccupParHeureEtg5 = px.bar(
     TxOccupParHeureEtg5,text_auto=True,
-    title="<b>Taux d'occupation par heure du 04/07/2022 au 08/07/2022</b>",
+    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
     color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg5),
     template="plotly_white",labels={
                      "value": "Taux d'occupation en %",
@@ -445,10 +537,102 @@ fig_TxOccupParHeureEtg5 = px.bar(
 
 )
 
+fig_TxOccupParHeureEtg6 = px.bar(
+    TxOccupParHeureEtg6,text_auto=True,
+    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
+    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg6),
+    template="plotly_white",labels={
+                     "value": "Taux d'occupation en %",
+                     "index": "Tranches horaires",
+                     "etg": "Etage"
+                 }
 
+)
+
+fig_TxOccupParHeureEtg7 = px.bar(
+    TxOccupParHeureEtg7,text_auto=True,
+    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
+    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg7),
+    template="plotly_white",labels={
+                     "value": "Taux d'occupation en %",
+                     "index": "Tranches horaires",
+                     "etg": "Etage"
+                 }
+
+)
+
+fig_TxOccupParHeureEtg8 = px.bar(
+    TxOccupParHeureEtg8,text_auto=True,
+    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
+    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg8),
+    template="plotly_white",labels={
+                     "value": "Taux d'occupation en %",
+                     "index": "Tranches horaires",
+                     "etg": "Etage"
+                 }
+
+)
+
+fig_TxOccupParHeureEtgSS = px.bar(
+    TxOccupParHeureEtgSS,text_auto=True,
+    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
+    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtgSS),
+    template="plotly_white",labels={
+                     "value": "Taux d'occupation en %",
+                     "index": "Tranches horaires",
+                     "etg": "Etage"
+                 }
+
+)
+
+fig_TxOccupParHeureEtg0 = px.bar(
+    TxOccupParHeureEtg0,text_auto=True,
+    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
+    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg0),
+    template="plotly_white",labels={
+                     "value": "Taux d'occupation en %",
+                     "index": "Tranches horaires",
+                     "etg": "Etage"
+                 }
+
+)
+
+fig_TxOccupParHeureEtg1 = px.bar(
+    TxOccupParHeureEtg1,text_auto=True,
+    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
+    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg1),
+    template="plotly_white",labels={
+                     "value": "Taux d'occupation en %",
+                     "index": "Tranches horaires",
+                     "etg": "Etage"
+                 }
+
+)
+
+fig_TxOccupParHeureEtg2 = px.bar(
+    TxOccupParHeureEtg2,text_auto=True,
+    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
+    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg2),
+    template="plotly_white",labels={
+                     "value": "Taux d'occupation en %",
+                     "index": "Tranches horaires",
+                     "etg": "Etage"
+                 }
+
+)
+
+
+st.plotly_chart(fig_TxOccupParHeureEtgSS)
+st.plotly_chart(fig_TxOccupParHeureEtg0)
+st.plotly_chart(fig_TxOccupParHeureEtg1)
+st.plotly_chart(fig_TxOccupParHeureEtg2)
 st.plotly_chart(fig_TxOccupParHeureEtg3)
 st.plotly_chart(fig_TxOccupParHeureEtg4)
 st.plotly_chart(fig_TxOccupParHeureEtg5)
+st.plotly_chart(fig_TxOccupParHeureEtg6)
+st.plotly_chart(fig_TxOccupParHeureEtg7)
+st.plotly_chart(fig_TxOccupParHeureEtg8)
+
 
 
 st.markdown('---')
