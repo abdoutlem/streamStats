@@ -6,6 +6,7 @@ import pandas as pd
 import time
 import plotly_express as px
 import streamlit as st
+pd.options.plotting.backend ='plotly'
 
 st.set_page_config(page_title="Dashboard", layout="wide")
 
@@ -420,7 +421,6 @@ fig_nbrePostesOccupParHeure = px.line(
 )
 
 st.plotly_chart(fig_nbrePostesOccupParHeure)
-st.text(nbrePostesOccupParHeure)
 
 
 #Taux d'occupation par heure
@@ -430,6 +430,12 @@ d1 = d1.groupby(['etg']).sum()
 d1['nbrePostesEtg'] = tableUtilisations_selection.groupby(['etg']).first()['nbrePostesEtg'].astype(int)
 
 
+try:
+    TxOccupParHeureEtg = (
+        np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)
+    )
+except:
+    TxOccupParHeureEtg = [0]
 
 try:
     TxOccupParHeureEtg3 = (
@@ -457,162 +463,14 @@ try:
     )
 except:
     TxOccupParHeureEtg5 = [0]
-try:
-    TxOccupParHeureEtg6 = (
-    np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['6']]
-    )
-except:
-    TxOccupParHeureEtg6 = [0]
-try:
-    TxOccupParHeureEtg7 = (
-    np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['7']]
-    )
-except:
-    TxOccupParHeureEtg7 = [0]
-try:
-    TxOccupParHeureEtg8 = (
-    np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['8']]
-    )
-except:
-    TxOccupParHeureEtg8 = [0]
-try:
-    TxOccupParHeureEtgSS = (
-    np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['-1']]
-    )
-except:
-    TxOccupParHeureEtgSS = [0]
-try:
-    TxOccupParHeureEtg0 = (
-    np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['0']]
-    )
-except:
-    TxOccupParHeureEtg0 = [0]
-try:
-    TxOccupParHeureEtg1 = (
-    np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['1']]
-    )
-except:
-    TxOccupParHeureEtg1 = [0]
-try:
-    TxOccupParHeureEtg2 = (
-    np.around((d1.iloc[:,0:14].transpose() / d1['nbrePostesEtg'])*100)[['2']]
-    )
-except:
-    TxOccupParHeureEtg2 = [0]
 
 
 
-fig_TxOccupParHeureEtg3 = px.bar(
-    TxOccupParHeureEtg3,text_auto=True,
+
+fig_TxOccupParHeureEtg = px.bar(
+    TxOccupParHeureEtg,text_auto=True,
     title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>"  ,
-    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg3),
-    template="plotly_white",labels={
-                     "value": "Taux d'occupation en %",
-                     "index": "Tranches horaires",
-                     "etg": "Etage"
-                 }
-
-)
-
-fig_TxOccupParHeureEtg4 = px.bar(
-    TxOccupParHeureEtg4,text_auto=True,
-    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
-    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg4),
-    template="plotly_white",labels={
-                     "value": "Taux d'occupation en %",
-                     "index": "Tranches horaires",
-                     "etg": "Etage"
-                 }
-
-)
-fig_TxOccupParHeureEtg5 = px.bar(
-    TxOccupParHeureEtg5,text_auto=True,
-    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
-    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg5),
-    template="plotly_white",labels={
-                     "value": "Taux d'occupation en %",
-                     "index": "Tranches horaires",
-                     "etg": "Etage"
-                 }
-
-)
-
-fig_TxOccupParHeureEtg6 = px.bar(
-    TxOccupParHeureEtg6,text_auto=True,
-    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
-    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg6),
-    template="plotly_white",labels={
-                     "value": "Taux d'occupation en %",
-                     "index": "Tranches horaires",
-                     "etg": "Etage"
-                 }
-
-)
-
-fig_TxOccupParHeureEtg7 = px.bar(
-    TxOccupParHeureEtg7,text_auto=True,
-    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
-    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg7),
-    template="plotly_white",labels={
-                     "value": "Taux d'occupation en %",
-                     "index": "Tranches horaires",
-                     "etg": "Etage"
-                 }
-
-)
-
-fig_TxOccupParHeureEtg8 = px.bar(
-    TxOccupParHeureEtg8,text_auto=True,
-    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
-    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg8),
-    template="plotly_white",labels={
-                     "value": "Taux d'occupation en %",
-                     "index": "Tranches horaires",
-                     "etg": "Etage"
-                 }
-
-)
-
-fig_TxOccupParHeureEtgSS = px.bar(
-    TxOccupParHeureEtgSS,text_auto=True,
-    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
-    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtgSS),
-    template="plotly_white",labels={
-                     "value": "Taux d'occupation en %",
-                     "index": "Tranches horaires",
-                     "etg": "Etage"
-                 }
-
-)
-
-fig_TxOccupParHeureEtg0 = px.bar(
-    TxOccupParHeureEtg0,text_auto=True,
-    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
-    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg0),
-    template="plotly_white",labels={
-                     "value": "Taux d'occupation en %",
-                     "index": "Tranches horaires",
-                     "etg": "Etage"
-                 }
-
-)
-
-fig_TxOccupParHeureEtg1 = px.bar(
-    TxOccupParHeureEtg1,text_auto=True,
-    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
-    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg1),
-    template="plotly_white",labels={
-                     "value": "Taux d'occupation en %",
-                     "index": "Tranches horaires",
-                     "etg": "Etage"
-                 }
-
-)
-
-fig_TxOccupParHeureEtg2 = px.bar(
-    TxOccupParHeureEtg2,text_auto=True,
-    title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>",
-    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg2),
+    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg),facet_row='etg',
     template="plotly_white",labels={
                      "value": "Taux d'occupation en %",
                      "index": "Tranches horaires",
@@ -622,16 +480,8 @@ fig_TxOccupParHeureEtg2 = px.bar(
 )
 
 
-st.plotly_chart(fig_TxOccupParHeureEtgSS)
-st.plotly_chart(fig_TxOccupParHeureEtg0)
-st.plotly_chart(fig_TxOccupParHeureEtg1)
-st.plotly_chart(fig_TxOccupParHeureEtg2)
-st.plotly_chart(fig_TxOccupParHeureEtg3)
-st.plotly_chart(fig_TxOccupParHeureEtg4)
-st.plotly_chart(fig_TxOccupParHeureEtg5)
-st.plotly_chart(fig_TxOccupParHeureEtg6)
-st.plotly_chart(fig_TxOccupParHeureEtg7)
-st.plotly_chart(fig_TxOccupParHeureEtg8)
+st.plotly_chart(fig_TxOccupParHeureEtg)
+
 
 
 
@@ -709,13 +559,14 @@ nbreOccupParH = (
 )
 
 
-fig_nbreOccupParH = px.bar(
-    nbreOccupParH,
+fig_nbreOccupParH = nbreOccupParH.plot.barh(
+    #nbreOccupParH,
     title="<b>Nombre d'occupations par tranche horaire par etage</b>",
     color_discrete_sequence=["#0083B8"] * len(nbreOccupParH),
-    template="plotly_white",
+    template="plotly_white",facet_row='etg'
 )
 
+st.text(nbreOccupParH)
 st.plotly_chart(fig_nbreOccupParH)
 
 
