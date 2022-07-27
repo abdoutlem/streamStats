@@ -472,7 +472,6 @@ except:
 
 
 
-
 fig_TxOccupParHeureEtg = px.bar(
     TxOccupParHeureEtg,text_auto=True,
     title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>"  ,
@@ -494,15 +493,13 @@ st.plotly_chart(fig_TxOccupParHeureEtg)
 st.markdown('---')
 #Durée moyenne d'utilisation des postes par étage
 dureeMoyUtilPostes = (
-    tableUtilisations_selection.groupby(['etg'])['Duree'].sum() / tableUtilisations_selection.groupby(['etg'])['SigfoxID'].nunique()
+    #tableUtilisations_selection.groupby(['etg'])['Duree'].sum() / tableUtilisations_selection.groupby(['etg'])['SigfoxID'].nunique()
+    tableUtilisations_selection.groupby(['etg','SigfoxID'])['Duree'].sum().groupby(['etg']).mean() / tableUtilisations_selection['date'].nunique()
 )
-
-
 
 fig_dureeMoyUtilPostes = px.bar(
     dureeMoyUtilPostes,
-    title="<b>Utilisation moyenne des postes par étage (sur la période choisie) en minutes </b>",
-    color_discrete_sequence=["#0083B8"] * len(dureeMoyUtilPostes),
+    title="<b>Durée totale moyenne d'utilisation des postes par étage en minutes </b>",
     template="plotly_white",
 
 )
@@ -512,13 +509,14 @@ st.plotly_chart(fig_dureeMoyUtilPostes)
 st.markdown('---')
 #Plus longues durées d'occupations
 postesLesPlusLgtpmsUtil = (
-    tableUtilisations_selection.groupby(['SigfoxID']).last()['OccupationTotale'].nlargest(10).to_frame()
+    #tableUtilisations_selection.groupby(['SigfoxID']).last()['OccupationTotale'].nlargest(10).to_frame()
+                              (tableUtilisations_selection.groupby(['SigfoxID'])['Duree'].sum() / tableUtilisations_selection['date'].nunique() ).nlargest(10)
 )
 
 
 fig_postesLesPlusLgtpmsUtil = px.bar(
     postesLesPlusLgtpmsUtil,
-    title="<b>Plus longues durées d'occupation</b>",
+    title="<b>Plus longues utilisations (moyenne sur la période choisie)</b>",
     color_discrete_sequence=["#0083B8"] * len(postesLesPlusLgtpmsUtil),
     template="plotly_white",
 
