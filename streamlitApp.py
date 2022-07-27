@@ -45,8 +45,8 @@ def format(excelFile):
 
 @st.cache
 def get_data_from_csv():
-    file = 'C:/Users/arhmaritlemcani/Downloads/sensors_messages_2022-07-18.csv'
-    #file  = 'inputFiles/sensors_messages_2022-07-17 (1).csv'
+    #file = 'C:/Users/arhmaritlemcani/Downloads/sensors_messages_2022-07-27.csv'
+    file  = 'inputFiles/sensors_messages_2022-07-27.csv'
     df = pd.read_csv(file,delimiter=';',encoding='ISO-8859-1',dtype=str).sort_values(['Code','Heure de message'])
 
     return df
@@ -69,7 +69,6 @@ elif('CD92' in df['Client'].iloc[0]):
 
 def recupPaquetsPerdus(df):
     wxData = df.to_numpy()
-    print(isinstance(wxData[18117][14],float))
     paquetsRécuperes = 0
 
     for i in range(len(wxData) - 1):
@@ -123,6 +122,15 @@ def tableUtilisations(df):
                 dateFin.append(wxData[i + 1][8][11:])
                 path.append(wxData[i][1])
                 sensorType.append(wxData[i][5])
+            elif(wxData[i][6] == 'MCEO' and wxData[i + 1][6] == 'MRS'):
+                sensors.append(wxData[i][0])
+                date.append(wxData[i][8][:10])
+                durees.append(date_to_minutes('21:40:00') - date_to_minutes(wxData[i][8]))
+                dateDebut.append(wxData[i][8][11:])
+                dateFin.append(wxData[i + 1][8][11:])
+                path.append(wxData[i][1])
+                sensorType.append(wxData[i][5])
+
 
     table1 = pd.DataFrame(list(zip(sensors, sensorType, path, date, dateDebut, dateFin, durees)),
                           columns=['SigfoxID', 'sensorType', 'path', 'date', 'dateDebut', 'dateFin', 'Duree'])
@@ -144,10 +152,10 @@ tableUtilisations = tableUtilisations(df)
 # Nettoyage des durées erronnées (3,6 et 12 minutes)
 
 # %%
-tableUtilisations.drop(tableUtilisations[tableUtilisations['Duree'] == 3].index, inplace=True)
-tableUtilisations.drop(tableUtilisations[tableUtilisations['Duree'] == 6].index, inplace=True)
-tableUtilisations.drop(tableUtilisations[tableUtilisations['Duree'] == 9].index, inplace=True)
-tableUtilisations.drop(tableUtilisations[tableUtilisations['Duree'] == 12].index, inplace=True)
+#tableUtilisations.drop(tableUtilisations[tableUtilisations['Duree'] == 3].index, inplace=True)
+#tableUtilisations.drop(tableUtilisations[tableUtilisations['Duree'] == 6].index, inplace=True)
+#tableUtilisations.drop(tableUtilisations[tableUtilisations['Duree'] == 9].index, inplace=True)
+#tableUtilisations.drop(tableUtilisations[tableUtilisations['Duree'] == 12].index, inplace=True)
 
 # %% [markdown]
 # Correction des colonnes Batiments et etg et sensorType (en fonction des clients)
@@ -387,7 +395,6 @@ dureeMoyOccupPostes = (
 fig_dureeMoyOccupPostes = px.bar(
     dureeMoyOccupPostes,
     title="<b>Durée moyenne occupation des postes</b>",
-    color_discrete_sequence=["#0083B8"] * len(dureeMoyOccupPostes),
     template="plotly_white",
 
 )
@@ -403,16 +410,15 @@ st.markdown('---')
 
 
 nbrePostesOccupParHeure = (
-    d1.groupby(['etg']).sum().reset_index().transpose()[2:]
+    d1.groupby(['etg']).sum().transpose()
 )
 
 if(client=='CD92'):
     nbrePostesOccupParHeure = nbrePostesOccupParHeure.rename(columns={0:'-1',1:0,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8})
 
 fig_nbrePostesOccupParHeure = px.line(
-    nbrePostesOccupParHeure,
+    nbrePostesOccupParHeure,color='etg',
     title="<b>Nombre de postes occupés par heure</b>",
-    color_discrete_sequence=["#0083B8"] * len(nbrePostesOccupParHeure),
     template="plotly_white",labels=
     {
         "variable":"Etage"
@@ -470,7 +476,7 @@ except:
 fig_TxOccupParHeureEtg = px.bar(
     TxOccupParHeureEtg,text_auto=True,
     title="<b>Taux d'occupation par heure du " + tableUtilisations_selection['date'].min() + " au " + tableUtilisations_selection['date'].max() + "</b>"  ,
-    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg),facet_row='etg',
+    color_discrete_sequence=["#0083B8"] * len(TxOccupParHeureEtg),facet_row='etg',height=200 * len(TxOccupParHeureEtg.columns),
     template="plotly_white",labels={
                      "value": "Taux d'occupation en %",
                      "index": "Tranches horaires",
@@ -488,12 +494,14 @@ st.plotly_chart(fig_TxOccupParHeureEtg)
 st.markdown('---')
 #Durée moyenne d'utilisation des postes par étage
 dureeMoyUtilPostes = (
-    tableUtilisations_selection.groupby(['bat','etg','SigfoxID'])['Duree'].sum().to_frame().groupby(['etg']).mean()
+    tableUtilisations_selection.groupby(['etg'])['Duree'].sum() / tableUtilisations_selection.groupby(['etg'])['SigfoxID'].nunique()
 )
+
+
 
 fig_dureeMoyUtilPostes = px.bar(
     dureeMoyUtilPostes,
-    title="<b>Durée moyenne d'utilisation des postes par étage</b>",
+    title="<b>Utilisation moyenne des postes par étage (sur la période choisie) en minutes </b>",
     color_discrete_sequence=["#0083B8"] * len(dureeMoyUtilPostes),
     template="plotly_white",
 
@@ -546,7 +554,7 @@ fig_postesLesPlusSol = px.bar(
     postesLesPlusSol,
     title="<b>Postes les plus sollicités</b>",
     color_discrete_sequence=["#0083B8"] * len(postesLesPlusSol),
-    template="plotly_white",
+    template="plotly_white"
 
 )
 
@@ -559,14 +567,13 @@ nbreOccupParH = (
 )
 
 
-fig_nbreOccupParH = nbreOccupParH.plot.barh(
+fig_nbreOccupParH = nbreOccupParH.plot.bar(
     #nbreOccupParH,
     title="<b>Nombre d'occupations par tranche horaire par etage</b>",
     color_discrete_sequence=["#0083B8"] * len(nbreOccupParH),
-    template="plotly_white",facet_row='etg'
+    template="plotly_white",facet_row='etg',height=300 * len(nbreOccupParH.columns),text_auto=True,
 )
 
-st.text(nbreOccupParH)
 st.plotly_chart(fig_nbreOccupParH)
 
 
